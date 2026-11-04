@@ -1,0 +1,100 @@
+---
+import { actions } from 'astro:actions'
+import Layout from '../layouts/Layout.astro'
+import { getServerInfo } from '../lib/server-info'
+
+// Rendered on demand for every request; other pages are prerendered at build
+// time unless they opt out the same way.
+export const prerender = false
+
+const info = getServerInfo()
+const greeting = Astro.getActionResult(actions.greet)
+---
+
+<Layout title="Astro on Wodby" canonical={new URL(Astro.url.pathname, Astro.url.origin).href}>
+  <h1>Astro on Wodby</h1>
+  <p>Edit <code>src/pages/index.astro</code> to start building.</p>
+
+  <dl>
+    <dt>Node.js</dt>
+    <dd data-field="node">{info.node}</dd>
+    <dt>Environment</dt>
+    <dd data-field="environment">{info.environment}</dd>
+    <dt>Server time</dt>
+    <dd data-field="renderedAt">{info.renderedAt}</dd>
+  </dl>
+
+  <button type="button" id="refresh">Call the API endpoint again</button>
+
+  <form method="POST" action={actions.greet}>
+    <label for="name">Your name</label>
+    <input id="name" name="name" required maxlength="100" />
+    <button type="submit">Send to an action</button>
+  </form>
+  {greeting?.data && <p role="status">{greeting.data}</p>}
+  {greeting?.error && <p role="alert">{greeting.error.message}</p>}
+
+  <script>
+    import type { ServerInfo } from '../lib/server-info'
+
+    // Runs in the browser: fetches fresh data from the endpoint in
+    // src/pages/api/server-info.ts, which runs on the server.
+    document.getElementById('refresh')?.addEventListener('click', async () => {
+      const response = await fetch('/api/server-info')
+      const info: ServerInfo = await response.json()
+      for (const [field, value] of Object.entries(info)) {
+        const element = document.querySelector(`[data-field="${field}"]`)
+        if (element) element.textContent = value
+      }
+    })
+  </script>
+</Layout>
+
+<style>
+  dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.5rem 1.5rem;
+    margin: 2.5rem 0 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #fff;
+  }
+
+  dt {
+    color: #64748b;
+  }
+
+  dd {
+    margin: 0;
+    font-family: ui-monospace, monospace;
+  }
+
+  form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 2rem;
+  }
+
+  input {
+    padding: 0.375rem 0.5rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.375rem;
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    border: 0;
+    border-radius: 0.375rem;
+    color: #fff;
+    background: #0f172a;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #334155;
+  }
+</style>
