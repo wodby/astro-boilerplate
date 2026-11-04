@@ -1,0 +1,11 @@
+.idea
+node_modules
+.DS_Store
+.env
+.env.*
+!.env.example
+npm-debug.log*
+
+# Build output and generated types
+dist
+.astro
